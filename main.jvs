@@ -1,4 +1,44 @@
+void drawTopBoard() {
+    print("  ");
+    for (int i = 1; i < 12; i++) {
+        print(i);
+        print(" ");
+    }
+
+    println("");
+    println("   _ _ _ _ _ _ _ _ _ _ _");
+}
+
+void drawBottomBoard() {
+    print(11);
+    println("          \\ _ _ _ _ _ _ _ _ _ _ _\\");
+}
+
+/*
+ * Procédure permettant l'affichage du plateau de jeu.
+ */
+void drawMidBoard() {
+    for (int i = 1; i < 11; i++) {
+        if (i == 10) {
+            print(10);
+            println("         \\                      \\");
+        } else {
+            String space = "";
+            for (int j = 0; j < i; j++) {
+                space += " ";
+            }
+            print(i);
+            println(space + "\\                      \\");
+        }
+    }
+}
+
+void drawBoard() {
+    drawTopBoard();
+    drawMidBoard();
+    drawBottomBoard();
+}
+
 void main() {
-    // Easy
-    // ez
+    drawBoard();
 }
