@@ -1,44 +1,103 @@
+class Board {
+    char[][] board;
+}
+
+class Player {
+    String name;
+    String position;
+    char mark;
+}
+
+/** Procédure qui créer le plateau de jeu et l'initialise */
+Board createBoard() {
+    Board board = new Board();
+    board.board = new char[11][11];
+
+    for (int i = 0; i < board.board.length; i++) {
+        for (int j = 0; j < board.board[i].length; j++) {
+            board.board[i][j] = ' ';
+        }
+    }
+    return board;
+}
+
+/**
+ * Procédure permettant de remplir le plateau à la position x, y du joueur player.
+ *
+ * @param board tableau de char contenant les mouvements des joueurs
+ * @param x entier représentant la colonne du tableau
+ * @param y entier représentant la ligne du tableau
+ * @param player instance du joueur
+ */
+void fillBoard(char[][] board, int x, int y, Player player) {
+
+    for (int i = 0; i < board.length; i++) {
+        for (int j = 0; j < board[i].length; j++) {
+            if (i == x && j == y) {
+                board[i][j] = player.mark;
+            }
+        }
+    }
+}
+
 void drawTopBoard() {
-    print("  ");
+    print("   ");
     for (int i = 1; i < 12; i++) {
         print(i);
         print(" ");
     }
 
     println("");
-    println("   _ _ _ _ _ _ _ _ _ _ _");
+    println("    _ _ _ _ _ _ _ _ _ _ _ ");
 }
 
 void drawBottomBoard() {
-    print(11);
-    println("          \\ _ _ _ _ _ _ _ _ _ _ _\\");
+    print("               _ _ _ _ _ _ _ _ _ _ _ ");
 }
 
-/*
- * Procédure permettant l'affichage du plateau de jeu.
+/**
+ * Procédure permettant l'affichage central du plateau.
+ *
+ * @param board plateau de char contenant les mouvements des joueurs
  */
-void drawMidBoard() {
-    for (int i = 1; i < 11; i++) {
-        if (i == 10) {
-            print(10);
-            println("         \\                      \\");
-        } else {
-            String space = "";
-            for (int j = 0; j < i; j++) {
-                space += " ";
-            }
-            print(i);
-            println(space + "\\                      \\");
+void drawMidBoard(char[][] board) {
+    for (int i = 0; i < board.length; i++) {
+
+        String space = "";
+        for (int k = 0; k < i; k++) {
+            space += " ";
         }
+
+        print((i < 9) ? i + 1 + "  " : i + 1 + " ");
+        print(space + "\\");
+
+        for (int j = 0; j < board[i].length; j++) {
+            print(board[i][j]);
+            print(" ");
+        }
+        print("\\");
+        println("");
     }
 }
 
-void drawBoard() {
+/**
+ * Procédure qui utilise chacune des 3 fonctions d'affichage du plateau
+ *
+ * @param board plateau de char contenant les mouvements des joueurs
+ */
+void drawBoard(char[][] board) {
     drawTopBoard();
-    drawMidBoard();
+    drawMidBoard(board);
     drawBottomBoard();
 }
 
 void main() {
-    drawBoard();
+    Player p = new Player();
+    p.mark = 'x';
+
+    Board b = createBoard();
+    fillBoard(b.board, 0, 1, p);
+    fillBoard(b.board, 1, 1, p);
+    fillBoard(b.board, 1, 10, p);
+    drawBoard(b.board);
 }
