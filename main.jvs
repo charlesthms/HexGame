@@ -92,24 +92,27 @@ void drawBoard(char[][] board) {
 
 /* ##################################### Moteur du jeu ##################################### */
 
-boolean interval(int x, int a, int b){
+boolean interval(int x, int a, int b) {
     return x >= a && x < b;
 }
 
-/** Fonction permettant de compter le nombre de voisins de la case au rang pos
-*
-* @param board plateau de char contenant les mouvements des joueurs
-* @param p instance du joueur
-* @param pos tableau d'entiers de taille 2 représentant la position centrale (x,y)
+/**
+ * Fonction permettant de compter le nombre de voisins de la case au rang pos
+ *
+ * @param board plateau de char contenant les mouvements des joueurs
+ * @param p instance du joueur
+ * @param pos tableau d'entiers de taille 2 représentant la position centrale (x,y)
  */
 int nbrVoisins(Board board, Player p, int[] pos) {
     int res = 0;
 
     for (int y = pos[1] - 1; y <= pos[1] + 1; y++) {
         for (int x = pos[0] - 1; x <= pos[0] + 1; x++) {
-            if (!(x == pos[0] - 1 && y == pos[1] - 1 || x == pos[0] + 1 && y == pos[1] + 1 || x == pos[0] && y == pos[1])) {
-                if(interval(x, 0, board.board.length) && interval(y, 0, board.board.length)) {
-                    if (board.board[x][y] == p.mark) {
+            if (!(x == pos[0] - 1 && y == pos[1] - 1
+                    || x == pos[0] + 1 && y == pos[1] + 1
+                    || x == pos[0] && y == pos[1])) {
+                if (interval(x, 0, board.board.length) && interval(y, 0, board.board.length)) {
+                    if (board.board[y][x] == p.mark) {
                         res++;
                     }
                 }
@@ -119,24 +122,31 @@ int nbrVoisins(Board board, Player p, int[] pos) {
     return res;
 }
 
-/** Fonction permettant d'obtenir un tableau à deux dimensions représentant les coordonnées (x, y) des voisins
-*
-* @param board plateau de char contenant les mouvements des joueurs
-* @param p instance du joueur
-* @param pos tableau d'entiers de taille 2 représentant la position centrale (x,y)
+/**
+ * Fonction permettant d'obtenir un tableau à deux dimensions représentant les coordonnées (x,
+ * y) des voisins
+ *
+ * @param board plateau de char contenant les mouvements des joueurs
+ * @param p instance du joueur
+ * @param pos tableau d'entiers de taille 2 représentant la position centrale (x,y)
+ * @return tableau d'entiers à 2 dimensions.
  */
 int[][] checkVoisin(Board board, Player p, int[] pos) {
 
     int[][] voisins = new int[nbrVoisins(board, p, pos)][2];
     int cursor = 0;
 
-    for (int y = pos[1]; y < pos[1] + 3; y++) {
-        for (int x = pos[0]; x < pos[0] + 3; x++) {
-            if (x != 0 && y != 0 || x != x - 1 && y != y - 1 || x != x + 1 && y != y + 1) {
-                if (board.board[y][x] == p.mark) {
-                    int[] coordonees = {x, y};
-                    voisins[cursor] = coordonees;
-                    cursor++;
+    for (int y = pos[1] - 1; y <= pos[1] + 1; y++) {
+        for (int x = pos[0] - 1; x <= pos[0] + 1; x++) {
+            if (!(x == pos[0] - 1 && y == pos[1] - 1
+                    || x == pos[0] + 1 && y == pos[1] + 1
+                    || x == pos[0] && y == pos[1])) {
+                if (interval(x, 0, board.board.length) && interval(y, 0, board.board.length)) {
+                    if (board.board[y][x] == p.mark) {
+                        int[] coordonees = {x, y};
+                        voisins[cursor] = coordonees;
+                        cursor++;
+                    }
                 }
             }
         }
@@ -144,22 +154,85 @@ int[][] checkVoisin(Board board, Player p, int[] pos) {
     return voisins;
 }
 
+/**
+ * Fonction qui vérifie si un joueur forme une ligne continue à travers le plateau
+ *
+ * @param board plateau de jeu
+ * @param p instance du joueur
+ * @param visited tableau booléen permettant de marquer les cases déjà visitées
+ */
+boolean isContinuous(Board board, int[] start, int end, Player p, Boolean[][] visited) {
+    /** si la marque du joueur est y alors on check en y, x sinon */
+    if ((p.mark == 'y') ? start[1] == end : start[0] == end) {
+        // Condition d'arrêt
+        return true;
+    } else {
+        if (p.mark == 'y') {
+            int[][] voisins = checkVoisin(board, p, start);
+
+            for (int y = 0; y < voisins.length; y++) {
+                if (voisins[y][1] >= start[1]
+                        && visited[voisins[y][0]][voisins[y][1]] != true) {
+                    // si le y du voisin est > au y de départ on fait un appel récursif à
+                    // partir de ce voisin et on marque cette position comme 'visitée'
+                    // println(voisins[y][0] + ", " + voisins[y][1]);
+                    visited[voisins[y][0]][voisins[y][1]] = true;
+                    return isContinuous(board, voisins[y], end, p, visited);
+                }
+            }
+        }
+    }
+    return false;
+}
+
 void main() {
 
     Player p = new Player();
     p.mark = 'x';
+    Player p1 = new Player();
+    p1.mark = 'y';
 
-    int[] pos = {10, 10};
+    int[] pos = {2, 0};
     Board b = createBoard();
 
     fillBoard(b.board, 0, 1, p);
     fillBoard(b.board, 1, 0, p);
-    fillBoard(b.board, 2, 0, p);
     fillBoard(b.board, 1, 1, p);
     fillBoard(b.board, 2, 1, p);
     fillBoard(b.board, 0, 2, p);
     fillBoard(b.board, 1, 2, p);
 
+    fillBoard(b.board, 2, 0, p1);
+    fillBoard(b.board, 2, 1, p1);
+    fillBoard(b.board, 2, 2, p1);
+    fillBoard(b.board, 3, 2, p1);
+    fillBoard(b.board, 3, 3, p1);
+    fillBoard(b.board, 3, 4, p1);
+    fillBoard(b.board, 3, 5, p1);
+    fillBoard(b.board, 3, 6, p1);
+    fillBoard(b.board, 3, 7, p1);
+    fillBoard(b.board, 3, 8, p1);
+    fillBoard(b.board, 3, 9, p1);
+    fillBoard(b.board, 4, 9, p1);
+    fillBoard(b.board, 5, 9, p1);
+    fillBoard(b.board, 5, 10, p1);
+    fillBoard(b.board, 6, 10, p1);
+
     drawBoard(b.board);
-    println("Nombre de voisins: " + nbrVoisins(b, p, pos));
+
+    Boolean[][] visited = new Boolean[11][11];
+    for (int i = 0; i < 11; i++) {
+        for (int j = 0; j < 11; j++) {
+            visited[i][j] = false;
+        }
+    }
+
+    println(isContinuous(b, pos, 10, p1, visited));
+
+    /* println("Nombre de voisins: " + nbrVoisins(b, p1, pos));
+    /*int[][] tab = checkVoisin(b, p1, pos);
+
+    for (int i = 0; i < tab.length; i++) {
+        println(tab[i][0] + ", " + tab[i][1]);
+    }*/
 }
