@@ -5,8 +5,6 @@ class Board {
 class Player {
     String name;
     char mark;
-    /* tableau de positions sous forme [[x,y], [x,y]] */
-    int[][] positions;
 }
 
 /**
@@ -164,7 +162,7 @@ int[][] checkVoisin(Board board, Player p, int[] pos) {
  * @param start position initiale
  */
 boolean isConnected(Board board, Player p, Boolean[][] visited, int[] start) {
-    // On marque comme visitée l aposition actuelle
+    // On marque comme visitée la position actuelle
     visited[start[0]][start[1]] = true;
 
     if ((p.mark == 'y') ? start[1] == 10 : start[0] == 10) {
@@ -177,23 +175,88 @@ boolean isConnected(Board board, Player p, Boolean[][] visited, int[] start) {
             // S'il y a un 'noeud'
             boolean[] tab = new boolean[voisins.length];
             for (int i = 0; i < tab.length; i++) {
-                if (visited[voisins[i][0]][voisins[i][1]] != true) {
+                if (!visited[voisins[i][0]][voisins[i][1]]) {
                     tab[i] = isConnected(board, p, visited, voisins[i]);
                     if (tab[i]) return true;
                 }
             }
         } else {
+            println("yes");
             for (int y = 0; y < voisins.length; y++) {
-                if (visited[voisins[y][0]][voisins[y][1]] != true) {
+                println("yes");
+                if (!visited[voisins[y][0]][voisins[y][1]]) {
                     // Si la case ne l'est pas déjà on la marque cette comme 'visitée'
                     // println(voisins[y][0] + ", " + voisins[y][1]);
                     visited[voisins[y][0]][voisins[y][1]] = true;
+                    println("yes");
                     return isConnected(board, p, visited, voisins[y]);
                 }
             }
         }
         return false;
     }
+}
+
+/**
+ * Fonction permettant de compter le nombre de début de chemin sur le plateau selon le joueur p
+ *
+ * @param b instance du plateau de jeu
+ * @param p instance du joueur p
+ * @return nombre de début de chemin
+ */
+int countStartingPath(Board b, Player p) {
+    int count = 0;
+
+    if (p.mark == 'y') {
+        for (int i = 0; i < b.board.length; i++) {
+            if (b.board[0][i] == p.mark) count++;
+        }
+    } else {
+        for (int i = 0; i < b.board.length; i++) {
+            if (b.board[i][0] == p.mark) count++;
+        }
+    }
+
+    return count;
+}
+
+Boolean[][] initBoolArray() {
+    Boolean[][] visited = new Boolean[11][11];
+
+    for (int i = 0; i < 11; i++) {
+        for (int j = 0; j < 11; j++) {
+            visited[i][j] = false;
+        }
+    }
+    return visited;
+}
+
+boolean checkWin(Board b, Player p) {
+
+    int[][] startPos = new int[countStartingPath(b, p)][2];
+    int cursor = 0;
+
+    if (p.mark == 'y') {
+        for (int i = 0; i < b.board.length; i++) {
+            if (b.board[0][i] == p.mark) {
+                int[] coord = {0, i};
+                startPos[cursor] = coord;
+                cursor++;
+            }
+        }
+    } else {
+        for (int i = 0; i < b.board.length; i++) {
+            if (b.board[i][0] == p.mark) {
+                int[] coord = {i, 0};
+                startPos[cursor] = coord;
+                cursor++;
+            }
+        }
+    }
+    println(isConnected(b, p, initBoolArray(), startPos[0]));
+    for (int i = 0; i < startPos.length; i++) {}
+
+    return false;
 }
 
 void main() {
@@ -205,6 +268,9 @@ void main() {
 
     int[] pos = {2, 0};
     Board b = createBoard();
+
+    fillBoard(b.board, 0, 7, p);
+    fillBoard(b.board, 0, 2, p);
 
     fillBoard(b.board, 2, 0, p1);
     fillBoard(b.board, 2, 1, p1);
@@ -232,12 +298,7 @@ void main() {
 
     drawBoard(b.board);
 
-    Boolean[][] visited = new Boolean[11][11];
-    for (int i = 0; i < 11; i++) {
-        for (int j = 0; j < 11; j++) {
-            visited[i][j] = false;
-        }
-    }
-
-    println(isConnected(b, p1, visited, pos));
+    println(checkWin(b, p1));
+    println(countStartingPath(b, p1));
+    // println(isConnected(b, p1, initBoolArray(), pos));
 }
