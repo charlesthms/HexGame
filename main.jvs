@@ -181,14 +181,11 @@ boolean isConnected(Board board, Player p, Boolean[][] visited, int[] start) {
                 }
             }
         } else {
-            println("yes");
             for (int y = 0; y < voisins.length; y++) {
-                println("yes");
                 if (!visited[voisins[y][0]][voisins[y][1]]) {
                     // Si la case ne l'est pas déjà on la marque cette comme 'visitée'
                     // println(voisins[y][0] + ", " + voisins[y][1]);
                     visited[voisins[y][0]][voisins[y][1]] = true;
-                    println("yes");
                     return isConnected(board, p, visited, voisins[y]);
                 }
             }
@@ -239,7 +236,7 @@ boolean checkWin(Board b, Player p) {
     if (p.mark == 'y') {
         for (int i = 0; i < b.board.length; i++) {
             if (b.board[0][i] == p.mark) {
-                int[] coord = {0, i};
+                int[] coord = {i, 0};
                 startPos[cursor] = coord;
                 cursor++;
             }
@@ -247,14 +244,15 @@ boolean checkWin(Board b, Player p) {
     } else {
         for (int i = 0; i < b.board.length; i++) {
             if (b.board[i][0] == p.mark) {
-                int[] coord = {i, 0};
+                int[] coord = {0, i};
                 startPos[cursor] = coord;
                 cursor++;
             }
         }
     }
-    println(isConnected(b, p, initBoolArray(), startPos[0]));
-    for (int i = 0; i < startPos.length; i++) {}
+    for (int i = 0; i < startPos.length; i++) {
+        if (isConnected(b, p, initBoolArray(), startPos[0])) return true;
+    }
 
     return false;
 }
@@ -266,7 +264,6 @@ void main() {
     Player p1 = new Player();
     p1.mark = 'y';
 
-    int[] pos = {2, 0};
     Board b = createBoard();
 
     fillBoard(b.board, 0, 7, p);
@@ -299,6 +296,7 @@ void main() {
     drawBoard(b.board);
 
     println(checkWin(b, p1));
-    println(countStartingPath(b, p1));
+    // println(countStartingPath(b, p1));
+    int[] pos = {2, 0};
     // println(isConnected(b, p1, initBoolArray(), pos));
 }
