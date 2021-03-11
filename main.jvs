@@ -102,6 +102,7 @@ boolean interval(int x, int a, int b) {
  * @param board plateau de char contenant les mouvements des joueurs
  * @param p instance du joueur
  * @param pos tableau d'entiers de taille 2 représentant la position centrale (x,y)
+ * @return le nombre de voisins
  */
 int nbrVoisins(Board board, Player p, int[] pos) {
     int res = 0;
@@ -160,29 +161,39 @@ int[][] checkVoisin(Board board, Player p, int[] pos) {
  * @param board plateau de jeu
  * @param p instance du joueur
  * @param visited tableau booléen permettant de marquer les cases déjà visitées
+ * @param start position initiale
  */
-boolean isContinuous(Board board, int[] start, int end, Player p, Boolean[][] visited) {
-    /** si la marque du joueur est y alors on check en y, x sinon */
-    if ((p.mark == 'y') ? start[1] == end : start[0] == end) {
+boolean isConnected(Board board, Player p, Boolean[][] visited, int[] start) {
+    // On marque comme visitée l aposition actuelle
+    visited[start[0]][start[1]] = true;
+
+    if ((p.mark == 'y') ? start[1] == 10 : start[0] == 10) {
         // Condition d'arrêt
         return true;
     } else {
-        if (p.mark == 'y') {
-            int[][] voisins = checkVoisin(board, p, start);
+        int[][] voisins = checkVoisin(board, p, start);
 
+        if (voisins.length > 2) {
+            // S'il y a un 'noeud'
+            boolean[] tab = new boolean[voisins.length];
+            for (int i = 0; i < tab.length; i++) {
+                if (visited[voisins[i][0]][voisins[i][1]] != true) {
+                    tab[i] = isConnected(board, p, visited, voisins[i]);
+                    if (tab[i]) return true;
+                }
+            }
+        } else {
             for (int y = 0; y < voisins.length; y++) {
-                if (voisins[y][1] >= start[1]
-                        && visited[voisins[y][0]][voisins[y][1]] != true) {
-                    // si le y du voisin est > au y de départ on fait un appel récursif à
-                    // partir de ce voisin et on marque cette position comme 'visitée'
+                if (visited[voisins[y][0]][voisins[y][1]] != true) {
+                    // Si la case ne l'est pas déjà on la marque cette comme 'visitée'
                     // println(voisins[y][0] + ", " + voisins[y][1]);
                     visited[voisins[y][0]][voisins[y][1]] = true;
-                    return isContinuous(board, voisins[y], end, p, visited);
+                    return isConnected(board, p, visited, voisins[y]);
                 }
             }
         }
+        return false;
     }
-    return false;
 }
 
 void main() {
@@ -195,13 +206,6 @@ void main() {
     int[] pos = {2, 0};
     Board b = createBoard();
 
-    fillBoard(b.board, 0, 1, p);
-    fillBoard(b.board, 1, 0, p);
-    fillBoard(b.board, 1, 1, p);
-    fillBoard(b.board, 2, 1, p);
-    fillBoard(b.board, 0, 2, p);
-    fillBoard(b.board, 1, 2, p);
-
     fillBoard(b.board, 2, 0, p1);
     fillBoard(b.board, 2, 1, p1);
     fillBoard(b.board, 2, 2, p1);
@@ -211,12 +215,20 @@ void main() {
     fillBoard(b.board, 3, 5, p1);
     fillBoard(b.board, 3, 6, p1);
     fillBoard(b.board, 3, 7, p1);
+    fillBoard(b.board, 4, 7, p1);
+    fillBoard(b.board, 5, 7, p1);
     fillBoard(b.board, 3, 8, p1);
     fillBoard(b.board, 3, 9, p1);
     fillBoard(b.board, 4, 9, p1);
-    fillBoard(b.board, 5, 9, p1);
-    fillBoard(b.board, 5, 10, p1);
-    fillBoard(b.board, 6, 10, p1);
+    fillBoard(b.board, 6, 8, p1);
+    fillBoard(b.board, 5, 8, p1);
+    fillBoard(b.board, 4, 9, p1);
+    fillBoard(b.board, 6, 9, p1);
+    fillBoard(b.board, 2, 7, p1);
+    fillBoard(b.board, 1, 8, p1);
+    fillBoard(b.board, 1, 9, p1);
+    // fillBoard(b.board, 6, 10, p1);
+    fillBoard(b.board, 0, 10, p1);
 
     drawBoard(b.board);
 
@@ -227,12 +239,5 @@ void main() {
         }
     }
 
-    println(isContinuous(b, pos, 10, p1, visited));
-
-    /* println("Nombre de voisins: " + nbrVoisins(b, p1, pos));
-    /*int[][] tab = checkVoisin(b, p1, pos);
-
-    for (int i = 0; i < tab.length; i++) {
-        println(tab[i][0] + ", " + tab[i][1]);
-    }*/
+    println(isConnected(b, p1, visited, pos));
 }
