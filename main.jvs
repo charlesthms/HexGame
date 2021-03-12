@@ -43,6 +43,10 @@ void fillBoard(char[][] board, int x, int y, Player player) {
     }
 }
 
+boolean isFreePos(Board b, int x, int y) {
+    return !(b.board[y][x] == 'y' || b.board[y][x] == 'x');
+}
+
 void drawTopBoard() {
     print("   ");
     for (int i = 0; i < 11; i++) {
@@ -217,19 +221,7 @@ int countStartingPath(Board b, Player p) {
     return count;
 }
 
-Boolean[][] initBoolArray() {
-    Boolean[][] visited = new Boolean[11][11];
-
-    for (int i = 0; i < 11; i++) {
-        for (int j = 0; j < 11; j++) {
-            visited[i][j] = false;
-        }
-    }
-    return visited;
-}
-
-boolean checkWin(Board b, Player p) {
-
+int[][] getStartPos(Board b, Player p) {
     int[][] startPos = new int[countStartingPath(b, p)][2];
     int cursor = 0;
 
@@ -250,6 +242,29 @@ boolean checkWin(Board b, Player p) {
             }
         }
     }
+    return startPos;
+}
+
+/**
+ * Fonction permettant de créer un tableau booléen rempli de false
+ *
+ * @return tableau 2D de false
+ */
+Boolean[][] initBoolArray() {
+    Boolean[][] visited = new Boolean[11][11];
+
+    for (int i = 0; i < 11; i++) {
+        for (int j = 0; j < 11; j++) {
+            visited[i][j] = false;
+        }
+    }
+    return visited;
+}
+
+boolean checkWin(Board b, Player p) {
+
+    int[][] startPos = getStartPos(b, p);
+
     for (int i = 0; i < startPos.length; i++) {
         if (isConnected(b, p, initBoolArray(), startPos[0])) return true;
     }
@@ -257,46 +272,153 @@ boolean checkWin(Board b, Player p) {
     return false;
 }
 
-void main() {
+/** ######################### Menus et interactions utilisateur ######################### */
+String saisie() {
+    Boolean saisie = true;
+    String gameMode = readString("Choix du mode de jeu ( human / ai ): ");
 
-    Player p = new Player();
-    p.mark = 'x';
-    Player p1 = new Player();
-    p1.mark = 'y';
+    while (saisie) {
+        if (gameMode.equals("human") || gameMode.equals("ai")) {
+            saisie = false;
+        } else {
+            gameMode = readString("Erreur de saisie, choix du mode de jeu ( human / ai ): ");
+        }
+    }
+    return gameMode;
+}
 
-    Board b = createBoard();
+Player newPlayer(char mark) {
+    final Player P = new Player();
 
-    fillBoard(b.board, 0, 7, p);
-    fillBoard(b.board, 0, 2, p);
+    P.name = (mark == 'y') ? readString("Nom du joueur 1: ") : readString("Nom du joueur 2: ");
+    P.mark = mark;
 
-    fillBoard(b.board, 2, 0, p1);
-    fillBoard(b.board, 2, 1, p1);
-    fillBoard(b.board, 2, 2, p1);
-    fillBoard(b.board, 3, 2, p1);
-    fillBoard(b.board, 3, 3, p1);
-    fillBoard(b.board, 3, 4, p1);
-    fillBoard(b.board, 3, 5, p1);
-    fillBoard(b.board, 3, 6, p1);
-    fillBoard(b.board, 3, 7, p1);
-    fillBoard(b.board, 4, 7, p1);
-    fillBoard(b.board, 5, 7, p1);
-    fillBoard(b.board, 3, 8, p1);
-    fillBoard(b.board, 3, 9, p1);
-    fillBoard(b.board, 4, 9, p1);
-    fillBoard(b.board, 6, 8, p1);
-    fillBoard(b.board, 5, 8, p1);
-    fillBoard(b.board, 4, 9, p1);
-    fillBoard(b.board, 6, 9, p1);
-    fillBoard(b.board, 2, 7, p1);
-    fillBoard(b.board, 1, 8, p1);
-    fillBoard(b.board, 1, 9, p1);
-    // fillBoard(b.board, 6, 10, p1);
-    fillBoard(b.board, 0, 10, p1);
+    return P;
+}
+
+int[] isLegal(Board b, Player p) {
+
+    boolean saisie = true;
+    int x = readInteger(p.name + " entrez votre coup sur l'axe X:");
+    int y = readInteger(p.name + " entrez votre coup sur l'axe Y:");
+
+    while (saisie) {
+
+        if ((interval(x, 0, 11) && interval(y, 0, 11)) && isFreePos(b, x, y)) {
+            saisie = false;
+        } else {
+            x = readInteger("Erreur de saisie, " + p.name + " entrez votre coup sur l'axe X:");
+            y = readInteger("Erreur de saisie, " + p.name + " entrez votre coup sur l'axe X:");
+        }
+    }
+
+    int[] coord = {x, y};
+    return coord;
+}
+
+void humanVSHuman(Board b) {
+
+    final Player P1 = newPlayer('y');
+    final Player P2 = newPlayer('x');
+
+    int tour = 0;
+    Boolean gameRunning = true;
 
     drawBoard(b.board);
 
-    println(checkWin(b, p1));
-    // println(countStartingPath(b, p1));
-    int[] pos = {2, 0};
-    // println(isConnected(b, p1, initBoolArray(), pos));
+    while (gameRunning) {
+        if (tour == 0) {
+            int[] move = isLegal(b, P1);
+            int x = move[0];
+            int y = move[1];
+
+            fillBoard(b.board, x, y, P1);
+
+            tour = 1 - tour;
+            clear();
+            drawBoard(b.board);
+            gameRunning = !(checkWin(b, P1));
+        } else {
+
+            int[] move = isLegal(b, P2);
+            int x = move[0];
+            int y = move[1];
+
+            fillBoard(b.board, x, y, P2);
+
+            tour = 1 - tour;
+            clear();
+            drawBoard(b.board);
+            gameRunning = !(checkWin(b, P2));
+        }
+    }
+}
+
+void humanVSAi(Board b) {
+    final Player P1 = newPlayer('y');
+    final Player AI = new Player();
+
+    AI.name = "CPU";
+    AI.mark = 'x';
+
+    int tour = 0;
+    Boolean gameRunning = true;
+
+    drawBoard(b.board);
+
+    while (gameRunning) {
+        if (tour == 0) {
+            int[] move = isLegal(b, P1);
+            int x = move[0];
+            int y = move[1];
+
+            fillBoard(b.board, x, y, P1);
+
+            tour = 1 - tour;
+            clear();
+            drawBoard(b.board);
+            gameRunning = !(checkWin(b, P1));
+        } else {
+
+            int[] move = randomMove(b);
+            int x = move[0];
+            int y = move[1];
+
+            fillBoard(b.board, x, y, AI);
+
+            tour = 1 - tour;
+            clear();
+            drawBoard(b.board);
+            gameRunning = !(checkWin(b, AI));
+        }
+    }
+}
+
+/** ####################### AI ####################### */
+int[] randomMove(Board b) {
+    int x = random(0, 11);
+    int y = random(0, 11);
+
+    while (!isFreePos(b, x, y)) {
+        x = random(0, 11);
+        y = random(0, 11);
+    }
+
+    int[] res = {x, y};
+    return res;
+}
+
+void main() {
+
+    Board b = createBoard();
+    String gameMode = saisie();
+
+    if (gameMode.equals("human")) {
+        // Jeu humain VS humain
+        humanVSHuman(b);
+
+    } else {
+        // Jeu humain VS AI
+        humanVSAi(b);
+    }
 }
