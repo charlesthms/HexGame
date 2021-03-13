@@ -43,6 +43,7 @@ void fillBoard(char[][] board, int x, int y, Player player) {
     }
 }
 
+/** Fonction permettant de savoir si une position du plateau est occupée ou non */
 boolean isFreePos(Board b, int x, int y) {
     return !(b.board[y][x] == 'y' || b.board[y][x] == 'x');
 }
@@ -261,6 +262,13 @@ Boolean[][] initBoolArray() {
     return visited;
 }
 
+/**
+ * Fonction permettant de vérifier s'il existe un chemin vaincqueur
+ *
+ * @param b instance du plateau
+ * @param p instance du joueur
+ * @return true ou false
+ */
 boolean checkWin(Board b, Player p) {
 
     int[][] startPos = getStartPos(b, p);
@@ -273,6 +281,12 @@ boolean checkWin(Board b, Player p) {
 }
 
 /** ######################### Menus et interactions utilisateur ######################### */
+
+/**
+ * Fonction permettant de contrôler la saisie du mode de jeu et de renvoyer le mode selectionné
+ *
+ * @return string du mode de jeu
+ */
 String saisie() {
     Boolean saisie = true;
     String gameMode = readString("Choix du mode de jeu ( human / ai ): ");
@@ -287,6 +301,11 @@ String saisie() {
     return gameMode;
 }
 
+/**
+ * Fonction permettant de créer un nouveau joueur en controlant la saisie de son nom
+ *
+ * @param mark symbol joué par le joueur
+ */
 Player newPlayer(char mark) {
     final Player P = new Player();
 
@@ -296,6 +315,12 @@ Player newPlayer(char mark) {
     return P;
 }
 
+/**
+ * Fonction permettant de contrôler la saisie du coup et de savoir s'il est légal
+ *
+ * @param b instance du plateau de jeu
+ * @param p instance du joueur
+ */
 int[] isLegal(Board b, Player p) {
 
     boolean saisie = true;
@@ -316,6 +341,19 @@ int[] isLegal(Board b, Player p) {
     return coord;
 }
 
+int play(Board b, Player p, Boolean gameRunning, int tour) {
+    int[] move = isLegal(b, p);
+    int x = move[0];
+    int y = move[1];
+
+    fillBoard(b.board, x, y, p);
+
+    clear();
+    drawBoard(b.board);
+
+    return tour = 1 - tour;
+}
+
 void humanVSHuman(Board b) {
 
     final Player P1 = newPlayer('y');
@@ -328,27 +366,10 @@ void humanVSHuman(Board b) {
 
     while (gameRunning) {
         if (tour == 0) {
-            int[] move = isLegal(b, P1);
-            int x = move[0];
-            int y = move[1];
-
-            fillBoard(b.board, x, y, P1);
-
-            tour = 1 - tour;
-            clear();
-            drawBoard(b.board);
+            tour = play(b, P1, gameRunning, tour);
             gameRunning = !(checkWin(b, P1));
         } else {
-
-            int[] move = isLegal(b, P2);
-            int x = move[0];
-            int y = move[1];
-
-            fillBoard(b.board, x, y, P2);
-
-            tour = 1 - tour;
-            clear();
-            drawBoard(b.board);
+            tour = play(b, P2, gameRunning, tour);
             gameRunning = !(checkWin(b, P2));
         }
     }
@@ -368,19 +389,11 @@ void humanVSAi(Board b) {
 
     while (gameRunning) {
         if (tour == 0) {
-            int[] move = isLegal(b, P1);
-            int x = move[0];
-            int y = move[1];
-
-            fillBoard(b.board, x, y, P1);
-
-            tour = 1 - tour;
-            clear();
-            drawBoard(b.board);
+            tour = play(b, P1, gameRunning, tour);
             gameRunning = !(checkWin(b, P1));
         } else {
 
-            int[] move = randomMove(b);
+            int[] move = bestMove(b, P1, AI);
             int x = move[0];
             int y = move[1];
 
@@ -406,6 +419,69 @@ int[] randomMove(Board b) {
 
     int[] res = {x, y};
     return res;
+}
+
+int[] bestMove(Board b, Player P1, Player AI) {
+    int bestScore = Integer.MIN_VALUE;
+    int[] move = new int[2];
+
+    for (int y = 0; y < b.board.length; y++) {
+        for (int x = 0; x < b.board[y].length; x++) {
+            if (b.board[y][x] == '-') {
+
+                b.board[y][x] = 'x';
+                int score = minimax(b, 6, false, P1, AI);
+                b.board[y][x] = '-';
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    move[0] = x;
+                    move[1] = y;
+                }
+            }
+        }
+    }
+    return move;
+}
+
+int minimax(Board b, int depth, boolean isMaximizing, Player p1, Player ai) {
+    if (checkWin(b, p1) || checkWin(b, ai)) {
+        return (checkWin(b, p1)) ? 1 : -1;
+    }
+
+    if (isMaximizing) {
+        int bestScore = Integer.MIN_VALUE;
+
+        for (int y = 0; y < b.board.length; y++) {
+            for (int x = 0; x < b.board[y].length; x++) {
+                if (b.board[y][x] == '-') {
+
+                    b.board[y][x] = 'x';
+                    int score = minimax(b, depth - 1, false, p1, ai);
+                    b.board[y][x] = '-';
+                    bestScore = max(score, bestScore);
+                    println(score);
+                }
+            }
+        }
+        return bestScore;
+    } else {
+        int bestScore = Integer.MAX_VALUE;
+
+        for (int y = 0; y < b.board.length; y++) {
+            for (int x = 0; x < b.board[y].length; x++) {
+                if (b.board[y][x] == '-') {
+
+                    b.board[y][x] = 'y';
+                    int score = minimax(b, depth - 1, true, p1, ai);
+                    b.board[y][x] = '-';
+
+                    bestScore = min(score, bestScore);
+                }
+            }
+        }
+        return bestScore;
+    }
 }
 
 void main() {
